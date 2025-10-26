@@ -21,6 +21,7 @@ CONFIG_DOTDIR = ".dev-lxc"
 DEFAULT_CONFIG = os.path.expanduser("~/" + CONFIG_DOTDIR)
 
 
+# ": type" --> type hints; not enforced by interpreter, but good for testing
 def create(series: str, config: str = "", profile: str = ""):
     proj_dir = os.path.basename(os.getcwd())
     instance_name = os.path.basename(proj_dir) + f"-{series}"
@@ -116,7 +117,10 @@ def exec_cmd(series: str, command: str, stop_after: bool, emphemeral: bool, *env
     result = subprocess.run(run_args)
 
     if result.returncode:
-        print(f"Error running command {command} on instance {instance_name}", file=sys.stderr)
+        print(
+            f"Error running command {command} on instance {instance_name}",
+            file=sys.stderr,
+        )
     else:
         print("Command execution completed successfully")
 
@@ -159,7 +163,8 @@ def _discover_config(series: str) -> str:
     home_dir = os.path.expanduser("~")
 
     paths_to_check = (
-        os.path.join(*parts) for parts in (
+        os.path.join(*parts)
+        for parts in (
             (CONFIG_DOTDIR, series_yaml),
             (CONFIG_DOTDIR, "base.yaml"),
             (home_dir, CONFIG_DOTDIR, series_yaml),
@@ -196,7 +201,10 @@ def _exec_config(series: str, config: str = "") -> None:
     dev_lxc_exec = config_dict["dev-lxc-exec"]
 
     if not isinstance(dev_lxc_exec, (str, list)):
-        print(f"ERROR: dev-lxc-exec in {config} must be either a string or list of strings", file=sys.stderr)
+        print(
+            f"ERROR: dev-lxc-exec in {config} must be either a string or list of strings",
+            file=sys.stderr,
+        )
         return
 
     if isinstance(dev_lxc_exec, str):
@@ -237,7 +245,9 @@ def _create_container(
             with open(config, "rb") as config_fp:
                 config_input = config_fp.read()
         except OSError as e:
-            print(f"ERROR: Could not read LXD config from {config}: {e}", file=sys.stderr)
+            print(
+                f"ERROR: Could not read LXD config from {config}: {e}", file=sys.stderr
+            )
             config_input = None
     else:
         config_input = None
@@ -450,7 +460,11 @@ def main():
     elif hasattr(parsed, "stop_after"):
         parsed.func(parsed.series, parsed.stop_after)
     elif hasattr(parsed, "config"):
-        parsed.func(parsed.series, parsed.config or _discover_config(parsed.series), parsed.profile)
+        parsed.func(
+            parsed.series,
+            parsed.config or _discover_config(parsed.series),
+            parsed.profile,
+        )
     else:
         parsed.func(parsed.series)
 
