@@ -21,14 +21,22 @@ CONFIG_DOTDIR = ".dev-lxc"
 DEFAULT_CONFIG = os.path.expanduser("~/" + CONFIG_DOTDIR)
 
 
+# `dev_lxc create`
 # ": type" --> type hints; not enforced by interpreter, but good for testing
 def create(series: str, config: str = "", profile: str = ""):
     proj_dir = os.path.basename(os.getcwd())
-    instance_name = os.path.basename(proj_dir) + f"-{series}"
+    instance_name = (
+        os.path.basename(proj_dir) + f"-{series}"
+    )  # this is how naming collisions happen
+    # user calls "noble" or w/e, but lxc has file-series containers
+    # os.path.basename --> gets the end of the abs_path
+    # why proj_dir = os.path.basename(os.getcwd()), and then also this?
 
     if config:
         print("Using config " + config)
 
+    # why "_"? --> private functions not intended for use by the user or from
+    # outside this function; also not imported with 'from x import *'
     _create_container(instance_name, series, config, profile)
     _exec_config(series, config)
 
@@ -48,6 +56,8 @@ def shell(series: str, stop_after: bool):
 
     _start_if_stopped(instance_name)
 
+    # get lxc shell at cwd
+    # container will have access to subdirs and files
     subprocess.run(
         [
             "lxc",
@@ -79,6 +89,8 @@ def remove(series: str):
     _remove(instance_name)
 
 
+# *env_args 0, 1, or more positional arguments from user
+# if you don't intend these to be env args, they will be used as such anyways
 def exec_cmd(series: str, command: str, stop_after: bool, emphemeral: bool, *env_args):
     proj_dir = os.path.basename(os.getcwd())
     lxc_repo_path = f"/home/ubuntu/{os.path.basename(proj_dir)}"
@@ -108,6 +120,7 @@ def exec_cmd(series: str, command: str, stop_after: bool, emphemeral: bool, *env
         instance_name,
     ]
 
+    # allow user to add env args to end of subprocess.run call list
     for env_arg in env_args:
         run_args.append("--env")
         run_args.append(env_arg)
@@ -164,6 +177,8 @@ def _discover_config(series: str) -> str:
 
     paths_to_check = (
         os.path.join(*parts)
+        # not familiar with construction above
+        # how is tuple 'parts' populated by the following code?
         for parts in (
             (CONFIG_DOTDIR, series_yaml),
             (CONFIG_DOTDIR, "base.yaml"),
@@ -171,6 +186,8 @@ def _discover_config(series: str) -> str:
             (home_dir, CONFIG_DOTDIR, "base.yaml"),
         )
     )
+    # alrighty, apparently this is a generator...
+    # need to work on this form for sure
 
     for path in paths_to_check:
         if os.path.isfile(path):
