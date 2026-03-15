@@ -349,12 +349,7 @@ def _stop(instance_name: str) -> None:
 
 
 def _fetch_instance_name(series: str) -> str:
-    """
-    Accepts a series name from calling function, searches for extant instance
-    by the name "proj_dir + series", resolves case where instance name matches with
-    multiple extant instances, and returns a single instance_name; may return
-    "" if no match found or user declines input in _get_instance_name_input
-    """
+    """Returns instance_name of given series in cwd, or "" if none found or user declines selection"""
     instance_name = _create_default_instance_name(series)
     matches = _get_instance_name_matches(instance_name)
     if not matches:
@@ -368,10 +363,7 @@ def _fetch_instance_name(series: str) -> str:
 
 
 def _create_instance_name(series: str) -> str:
-    """
-    Accept series string name from calling function, and return a new instance name that does
-    not conflict with any existing instance names
-    """
+    """Creates new, unique instance_name and returns it"""
     instance_name = _create_default_instance_name(series)
     if _get_instance_name_matches(instance_name):
         return _create_variant_instance_name(instance_name)
@@ -380,7 +372,7 @@ def _create_instance_name(series: str) -> str:
 
 
 def _get_instance_name_matches(instance_name: str) -> list[str]:
-    """Accepts an instance name and returns list of instances whose names include {instance_name}"""
+    """Returns list of instances whose names include {instance_name}, or empty list if no matches found"""
     matches = subprocess.run(
         ["lxc", "ls", "--all-projects", "-c", "n", "-f", "csv", instance_name],
         # `lxc ls` command note:
@@ -394,14 +386,14 @@ def _get_instance_name_matches(instance_name: str) -> list[str]:
 
 
 def _create_default_instance_name(series: str) -> str:
-    """Returns instance_name string, constructed from project directory and instance series"""
+    """Returns instance_name string composed of cwd and series"""
     proj_dir = os.path.basename(os.getcwd())
     instance_name = f"{proj_dir}-{series}"
     return instance_name
 
 
 def _create_variant_instance_name(instance_name: str) -> str:
-    """Accepts instance name and returns a variant name to avoid naming collisions"""
+    """Appends random hex digits to instance name to avoid instance naming collisions"""
     variant_name = (
         f"{instance_name}-{''.join(random.choices(string.hexdigits, k=3)).lower()}"
     )
@@ -448,8 +440,7 @@ def _get_instance_name_input(instance_name: str, matches: list) -> str:
 
 def _get_confirmation(prompt: str) -> bool:
     """
-    Accept a prompt from a function needing user confirmation and return a bool
-    representing the user's choice to proceed (True) or not (False); default is True
+    Use {prompt} to get confirmation from user on whether to proceed or not; default is True (proceed)
     """
     while True:
         choice = input(prompt).strip().lower()
