@@ -116,7 +116,10 @@ def exec_cmd(series: str, command: str, stop_after: bool, emphemeral: bool, *env
     result = subprocess.run(run_args)
 
     if result.returncode:
-        print(f"Error running command {command} on instance {instance_name}", file=sys.stderr)
+        print(
+            f"Error running command {command} on instance {instance_name}",
+            file=sys.stderr,
+        )
     else:
         print("Command execution completed successfully")
 
@@ -161,7 +164,8 @@ def _discover_config(series: str) -> str:
     home_dir = os.path.expanduser("~")
 
     paths_to_check = (
-        os.path.join(*parts) for parts in (
+        os.path.join(*parts)
+        for parts in (
             (CONFIG_DOTDIR, series_yaml),
             (CONFIG_DOTDIR, "base.yaml"),
             (home_dir, CONFIG_DOTDIR, series_yaml),
@@ -198,7 +202,10 @@ def _exec_config(series: str, config: str = "") -> None:
     dev_lxc_exec = config_dict["dev-lxc-exec"]
 
     if not isinstance(dev_lxc_exec, (str, list)):
-        print(f"ERROR: dev-lxc-exec in {config} must be either a string or list of strings", file=sys.stderr)
+        print(
+            f"ERROR: dev-lxc-exec in {config} must be either a string or list of strings",
+            file=sys.stderr,
+        )
         return
 
     if isinstance(dev_lxc_exec, str):
@@ -239,7 +246,9 @@ def _create_container(
             with open(config, "rb") as config_fp:
                 config_input = config_fp.read()
         except OSError as e:
-            print(f"ERROR: Could not read LXD config from {config}: {e}", file=sys.stderr)
+            print(
+                f"ERROR: Could not read LXD config from {config}: {e}", file=sys.stderr
+            )
             config_input = None
     else:
         config_input = None
@@ -406,7 +415,10 @@ def _get_instance_name_input(instance_name: str, matches: list) -> str:
     """When multiple instances match {instance_name}, allows user to specify instance to act upon"""
     if len(matches) == 1:
         print(f"One partial match for {instance_name}: '{matches[0]}'")
-        choice = _get_confirmation(f"Interact with instance '{matches[0]}'? [Y/n]: ")
+        choice = _get_confirmation(
+            f"Interact with instance '{matches[0]}'? [Y/n]: ",
+            True,
+        )
         if choice:
             instance_name = str(matches[0])
         else:
@@ -438,20 +450,20 @@ def _get_instance_name_input(instance_name: str, matches: list) -> str:
     return instance_name
 
 
-def _get_confirmation(prompt: str) -> bool:
+def _get_confirmation(prompt: str = "Proceed?", default: bool = True) -> bool:
     """
-    Use {prompt} to get confirmation from user on whether to proceed or not; default is True (proceed)
+    Use {prompt} to get confirmation from user on whether to proceed or not; default configurable
     """
     while True:
         choice = input(prompt).strip().lower()
         if choice == "":
-            return True
+            return default
         if choice in ("y", "yes"):
             return True
         elif choice in ("n", "no"):
             return False
         else:
-            print("Invalid entry - please enter 'y' or 'n'")
+            print("Invalid entry - please enter 'y'/'yes' or 'n'/'no'")
 
 
 def main():
@@ -558,7 +570,11 @@ def main():
     elif hasattr(parsed, "stop_after"):
         parsed.func(parsed.series, parsed.stop_after)
     elif hasattr(parsed, "config"):
-        parsed.func(parsed.series, parsed.config or _discover_config(parsed.series), parsed.profile)
+        parsed.func(
+            parsed.series,
+            parsed.config or _discover_config(parsed.series),
+            parsed.profile,
+        )
     else:
         parsed.func(parsed.series)
 
