@@ -452,13 +452,13 @@ def _get_instance_name_input(instance_name: str, matches: list) -> str:
 
 def _get_confirmation(prompt: str = "Proceed?", default: bool = True) -> bool:
     """
-    Use {prompt} to get confirmation from user on whether to proceed or not; default configurable
+    Use {prompt} to get confirmation from user on whether to proceed or not; default is configurable
     """
     while True:
         choice = input(prompt).strip().lower()
         if choice == "":
             return default
-        if choice in ("y", "yes"):
+        elif choice in ("y", "yes"):
             return True
         elif choice in ("n", "no"):
             return False
